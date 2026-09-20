@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>PCIC Crop Insurance Search System</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 3l23 8.2V30c0 15-9.8 25.6-23 31C18.8 55.6 9 45 9 30V11.2z' fill='%232e7d32'/%3E%3C/svg%3E">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#2e7d32; --green-d:#1b5e20; --cornc:#e65100;
+    --bg:#f6f4ee; --card:#ffffff; --ink:#26302a; --muted:#6b7a70; --line:#e3e0d5;
+  }
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:linear-gradient(180deg,#edf2e6 0%,#f6f4ee 340px) var(--bg);
+    color:var(--ink); min-height:100vh; display:flex; flex-direction:column; font-size:17px; line-height:1.45;
+  }
+  /* ---------- header ---------- */
+  header{background:linear-gradient(135deg,#2e7d32,#1b5e20); color:#fff; padding:13px 16px; box-shadow:0 2px 10px rgba(0,0,0,.18)}
+  .hwrap{max-width:660px;margin:0 auto;display:flex;gap:12px;align-items:center}
+  .logo{width:52px;height:52px;flex:0 0 auto;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:default}
+  h1{font-size:17.5px;line-height:1.22;letter-spacing:.01em}
+  .sub{font-size:12.5px;opacity:.88;margin-top:2px}
+  .for-badge{display:inline-flex;align-items:center;gap:5px;margin-top:7px;background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.34);border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  .for-badge svg{width:11px;height:11px;flex:0 0 auto}
+  .devbar{background:#153f18;color:rgba(255,255,255,.9);text-align:center;font-size:12.5px;padding:7px 14px;letter-spacing:.02em}
+  .devbar strong{font-weight:700;color:#fff}
+  main{flex:1;width:100%;max-width:660px;margin:0 auto;padding:20px 16px 34px}
+  footer{text-align:center;color:#7d8a80;font-size:12.5px;padding:18px 16px 22px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 4px 18px rgba(43,59,39,.07)}
+  h2{font-size:21px}
+  h3{font-size:17px;margin-bottom:8px}
+  .iloc{color:var(--muted);font-size:14.5px;margin-top:3px}
+  .iloc-s{font-weight:400;font-size:.82em;opacity:.75}
+  /* ---------- commodity choice ---------- */
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  @media(max-width:430px){.choices{grid-template-columns:1fr}}
+  .choice{
+    border:2px solid var(--line);background:#fff;border-radius:16px;padding:24px 12px 20px;
+    display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font:inherit;
+    transition:transform .15s,box-shadow .15s,border-color .15s;
+  }
+  .choice:hover,.choice:focus-visible{transform:translateY(-3px);box-shadow:0 10px 22px rgba(43,59,39,.14);outline:none}
+  .choice.rice:hover,.choice.rice:focus-visible{border-color:var(--green)}
+  .choice.corn:hover,.choice.corn:focus-visible{border-color:var(--cornc)}
+  .choice svg{width:64px;height:64px}
+  .c-name{font-size:21px;font-weight:700}
+  .c-sub{color:var(--muted);font-size:14px;font-style:italic}
+  /* ---------- search form ---------- */
+  .chip{display:flex;align-items:center;gap:10px;background:#eef5ec;border:1px solid #d5e3d2;border-radius:999px;padding:8px 10px 8px 16px;margin-bottom:18px;font-weight:700;font-size:16.5px}
+  .chip.corn{background:#fdf1e6;border-color:#f2d8ba}
+  .chip svg{width:26px;height:26px}
+  #change-commodity{margin-left:auto;background:none;border:none;color:var(--green);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:4px 6px}
+  .field{margin-bottom:16px}
+  label{display:block;font-size:14px;font-weight:700;color:#41504a;margin-bottom:6px}
+  .name-grid{display:grid;grid-template-columns:1.1fr 1fr 1.2fr;column-gap:12px}
+  @media(max-width:600px){.name-grid{grid-template-columns:1fr}}
+  .opt{font-weight:400;font-size:.78em;color:var(--muted)}
+  input[type=text],input[type=password]{
+    width:100%;font:inherit;font-size:18px;padding:13px 14px;border:1.5px solid #ccd6cb;
+    border-radius:12px;background:#fcfdfb;color:var(--ink);
+  }
+  input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(46,125,50,.18)}
+  input.bad{border-color:#d84b3a;box-shadow:0 0 0 3px rgba(216,75,58,.14)}
+  .err{color:#c62828;font-size:14px;margin-top:6px}
+  .btn-primary{
+    width:100%;font:inherit;font-size:18px;font-weight:700;color:#fff;cursor:pointer;
+    background:linear-gradient(135deg,#2e7d32,#1b5e20);border:none;border-radius:12px;padding:15px;
+    box-shadow:0 4px 12px rgba(27,94,32,.28);margin-top:6px;
+  }
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-primary:active{transform:scale(.985)}
+  .linkish{display:block;margin:16px auto 0;background:none;border:none;color:var(--muted);font:inherit;font-size:15px;cursor:pointer}
+  .linkish:hover{color:var(--green);text-decoration:underline}
+  /* ---------- modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(24,31,24,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .modal{background:#fff;border-radius:20px;max-width:430px;width:100%;padding:26px 22px 22px;text-align:center;
+    box-shadow:0 18px 50px rgba(0,0,0,.32);animation:pop .22s ease;max-height:86vh;overflow-y:auto}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .m-icon{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+  .m-icon.ok{background:#e6f3e6}
+  .m-icon.info{background:#fdf0dd}
+  .m-icon.warn{background:#eceff0}
+  .m-icon svg{width:36px;height:36px}
+  .m-title{font-size:18.5px;line-height:1.45}
+  .m-bday{margin-top:7px;color:#41504a;font-size:15.5px}
+  .m-sub{margin-top:9px;color:var(--muted);font-size:14px}
+  .m-entries-h{margin-top:18px;font-size:13px;font-weight:700;color:#5a6a5f;text-transform:uppercase;letter-spacing:.04em}
+  .m-table-wrap{margin-top:9px;border:1px solid #dce8d8;border-radius:12px;overflow:auto;-webkit-overflow-scrolling:touch}
+  .m-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.4;text-align:left}
+  .m-table th{background:var(--green);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:8px 9px;white-space:nowrap}
+  .m-table td{padding:9px;border-top:1px solid #e4ece0;vertical-align:top}
+  .m-table tbody tr:nth-child(even) td{background:#f6f9f4}
+  .m-rownum{color:#8a978d;font-size:13px}
+  .m-nowrap{white-space:nowrap}
+  #modal-close{margin-top:20px}
+  /* ---------- admin ---------- */
+  .admin-card{margin-bottom:16px}
+  .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:520px){.status-grid{grid-template-columns:1fr}}
+  .status{border:1.5px solid var(--line);border-radius:14px;padding:14px}
+  .status h4{font-size:15px;display:flex;align-items:center;gap:8px}
+  .dot{width:10px;height:10px;border-radius:50%;background:#c4cbc4;flex:0 0 auto}
+  .dot.on{background:var(--green)}
+  .status p{font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .dz{border:2px dashed #c6d2c3;border-radius:14px;padding:26px 16px;text-align:center;color:#5a6a5f;transition:border-color .15s,background .15s}
+  .dz.over{border-color:var(--green);background:#f1f7ef}
+  .dz svg{width:34px;height:34px;margin-bottom:6px;opacity:.65}
+  .dz p{font-size:15px}
+  .btn-ghost{font:inherit;font-size:15px;font-weight:600;padding:9px 16px;border-radius:10px;border:1.5px solid var(--green);background:#fff;color:var(--green);cursor:pointer}
+  .btn-ghost:hover{background:#f1f7ef}
+  .btn-danger{font:inherit;font-size:14.5px;font-weight:600;padding:9px 14px;border-radius:10px;border:1.5px solid #d84b3a;color:#d84b3a;background:#fff;cursor:pointer}
+  .btn-danger:hover{background:#fdf1ef}
+  .btn-danger.confirm{background:#d84b3a;color:#fff;border-color:#d84b3a}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .up-preview{margin-top:14px}
+  .ok-line{color:#2e7d32;font-size:15px;line-height:1.5}
+  .warn-line{color:#a86f00;font-size:14px;line-height:1.5;margin-top:4px}
+  .up-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13.5px}
+  .up-table th,.up-table td{text-align:left;padding:7px 8px;border-bottom:1px solid #ecefe8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+  .up-table th{color:#5a6a5f;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em}
+  .warn-note{background:#fdf3e0;border:1px solid #f0dcae;color:#7a5a00;border-radius:12px;padding:10px 13px;font-size:14px;margin-bottom:14px;line-height:1.5}
+  .muted{color:var(--muted);font-size:14.5px}
+  code{background:#f2f4f0;padding:2px 6px;border-radius:6px;font-size:13px}
+  details{margin-top:12px;font-size:14.5px}
+  details summary{cursor:pointer;color:var(--green);font-weight:600}
+  details .det-body{margin-top:8px;color:#41504a;background:#f7f9f5;border:1px solid #e5ece2;border-radius:12px;padding:12px 14px;line-height:1.6}
+  /* ---------- toast ---------- */
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(16px);background:#243025;color:#fff;
+    padding:12px 20px;border-radius:999px;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.3);
+    opacity:0;transition:opacity .25s,transform .25s;z-index:99;max-width:88vw;text-align:center;pointer-events:none}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  [hidden]{display:none !important}
+  button:focus-visible,input:focus-visible{outline:3px solid rgba(46,125,50,.4);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="logo" id="logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#43a047"/><stop offset="1" stop-color="#1b5e20"/>
+        </linearGradient></defs>
+        <path d="M32 3l23 8.2V30c0 15-9.8 25.6-23 31C18.8 55.6 9 45 9 30V11.2z" fill="url(#lg)"/>
+        <g fill="#eafbe7">
+          <path d="M32.5 49c-1-9-.5-16 1-22" stroke="#eafbe7" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <ellipse cx="33.5" cy="24" rx="3" ry="5.2"/>
+          <ellipse cx="27.5" cy="27" rx="3" ry="5.2" transform="rotate(-38 27.5 27)"/>
+          <ellipse cx="39.5" cy="27" rx="3" ry="5.2" transform="rotate(38 39.5 27)"/>
+          <ellipse cx="25" cy="34.5" rx="3" ry="5.2" transform="rotate(-55 25 34.5)"/>
+          <ellipse cx="42" cy="34.5" rx="3" ry="5.2" transform="rotate(55 42 34.5)"/>
+          <path d="M32 49c-7-1-11-5.5-12.5-11 7 1 11 5.5 12.5 11z"/>
+          <path d="M33 49c7-1 11-5.5 12.5-11-7 1-11 5.5-12.5 11z"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <h1>PCIC Crop Insurance Search System</h1>
+      <p class="sub">Biroken ti crop insurance mo &bull; Search your crop insurance</p>
+      <span class="for-badge">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        For Alcala Farmers Only
+      </span>
+    </div>
+  </div>
+</header>
+
+<div class="devbar">Developed by: <strong>ENGR. JOHN MARK C. CONTILLO, ABE</strong></div>
+
+<main>
+
+  <!-- ================= VIEW 1: CHOOSE COMMODITY ================= -->
+  <section id="view-commodity" class="view">
+    <div class="card">
+      <h2>Select your commodity</h2>
+      <p class="iloc">Pilien ti commodity mo</p>
+      <div class="choices">
+        <button class="choice rice" data-commodity="rice" type="button">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <g fill="#2e7d32">
+              <path d="M32 56c-1.2-10 0-18 2-25" stroke="#2e7d32" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+              <ellipse cx="34" cy="28" rx="3.4" ry="5.8"/>
+              <ellipse cx="27" cy="31.5" rx="3.4" ry="5.8" transform="rotate(-38 27 31.5)"/>
+              <ellipse cx="41" cy="31.5" rx="3.4" ry="5.8" transform="rotate(38 41 31.5)"/>
+              <ellipse cx="24.5" cy="40" rx="3.4" ry="5.8" transform="rotate(-55 24.5 40)"/>
+              <ellipse cx="43.5" cy="40" rx="3.4" ry="5.8" transform="rotate(55 43.5 40)"/>
+              <path d="M32 56c-8-1-12.5-6-14-12.5 8 1 12.5 6 14 12.5z"/>
+              <path d="M33 56c8-1 12.5-6 14-12.5-8 1-12.5 6-14 12.5z"/>
+            </g>
+          </svg>
+          <span class="c-name">Rice</span>
+          <span class="c-sub">Pagay</span>
+        </button>
+        <button class="choice corn" data-commodity="corn" type="button">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M22 28c-7 5-10.5 14-10 25 9-3.5 14.5-10 16.5-17.5z" fill="#43a047"/>
+            <path d="M42 28c7 5 10.5 14 10 25-9-3.5-14.5-10-16.5-17.5z" fill="#2e7d32"/>
+            <path d="M32 6c7.5 0 12 8 12 20 0 13-4.5 24-12 24S20 39 20 26C20 14 24.5 6 32 6z" fill="#f4c53d" stroke="#d9991f" stroke-width="1.6"/>
+            <g fill="#e0a52c">
+              <circle cx="26.5" cy="16" r="2.1"/><circle cx="32" cy="15" r="2.1"/><circle cx="37.5" cy="16" r="2.1"/>
+              <circle cx="26.5" cy="23" r="2.1"/><circle cx="32" cy="22" r="2.1"/><circle cx="37.5" cy="23" r="2.1"/>
+              <circle cx="26.5" cy="30" r="2.1"/><circle cx="32" cy="29" r="2.1"/><circle cx="37.5" cy="30" r="2.1"/>
+              <circle cx="26.5" cy="37" r="2.1"/><circle cx="32" cy="36" r="2.1"/><circle cx="37.5" cy="37" r="2.1"/>
+              <circle cx="29" cy="43" r="2.1"/><circle cx="35" cy="43" r="2.1"/>
+            </g>
+          </svg>
+          <span class="c-name">Corn</span>
+          <span class="c-sub">Mais</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VIEW 2: SEARCH FORM ================= -->
+  <section id="view-search" class="view" hidden>
+    <div class="card">
+      <div class="chip" id="chip">
+        <span id="chip-rice-ic">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><g fill="#2e7d32">
+            <path d="M32 56c-1.2-10 0-18 2-25" stroke="#2e7d32" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <ellipse cx="34" cy="28" rx="3.4" ry="5.8"/><ellipse cx="27" cy="31.5" rx="3.4" ry="5.8" transform="rotate(-38 27 31.5)"/>
+            <ellipse cx="41" cy="31.5" rx="3.4" ry="5.8" transform="rotate(38 41 31.5)"/>
+            <ellipse cx="24.5" cy="40" rx="3.4" ry="5.8" transform="rotate(-55 24.5 40)"/>
+            <ellipse cx="43.5" cy="40" rx="3.4" ry="5.8" transform="rotate(55 43.5 40)"/>
+            <path d="M32 56c-8-1-12.5-6-14-12.5 8 1 12.5 6 14 12.5z"/>
+            <path d="M33 56c8-1 12.5-6 14-12.5-8 1-12.5 6-14 12.5z"/>
+          </g></svg>
+        </span>
+        <span id="chip-corn-ic" hidden>
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M32 6c7.5 0 12 8 12 20 0 13-4.5 24-12 24S20 39 20 26C20 14 24.5 6 32 6z" fill="#f4c53d" stroke="#d9991f" stroke-width="2"/>
+            <g fill="#e0a52c"><circle cx="27" cy="18" r="2.4"/><circle cx="35" cy="20" r="2.4"/><circle cx="30" cy="28" r="2.4"/><circle cx="27" cy="37" r="2.4"/><circle cx="35" cy="36" r="2.4"/></g>
+          </svg>
+        </span>
+        <span id="chip-name">Rice</span>
+        <button id="change-commodity" type="button">Change <span class="iloc-s">/ Sukatan</span></button>
+      </div>
+
+      <h2>Enter your details</h2>
+      <p class="iloc" style="margin-bottom:18px">I-type ti nagan mo ken petsa ti pannakaipasngay mo</p>
+
+      <form id="search-form" autocomplete="off" novalidate>
+        <div class="name-grid">
+          <div class="field">
+            <label for="f-first">First Name <span class="iloc-s">/ Umuna a nagan</span></label>
+            <input id="f-first" type="text" placeholder="Juan" autocomplete="off" autocapitalize="words">
+            <p class="err" id="err-first" hidden>Please enter your first name. <span class="iloc-s">/ Pangasiyon i-type ti umuna a nagan mo.</span></p>
+          </div>
+          <div class="field">
+            <label for="f-middle">Middle Name <span class="iloc-s">/ Tengngan a nagan</span> <span class="opt">(optional)</span></label>
+            <input id="f-middle" type="text" placeholder="Dizon" autocomplete="off" autocapitalize="words">
+          </div>
+          <div class="field">
+            <label for="f-last">Last Name <span class="iloc-s">/ Apelyido</span></label>
+            <input id="f-last" type="text" placeholder="Dela Cruz" autocomplete="off" autocapitalize="words">
+            <p class="err" id="err-last" hidden>Please enter your last name. <span class="iloc-s">/ Pangasiyon i-type ti apelyido mo.</span></p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-bday">Birthday (MM/DD/YYYY) <span class="iloc-s">/ Petsa ti pannakaipasngay</span></label>
+          <input id="f-bday" type="text" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" autocomplete="off">
+          <p class="err" id="err-bday" hidden>Please enter a valid birthday in MM/DD/YYYY. <span class="iloc-s">/ Nakaro a petsa — usaren ti MM/DD/YYYY.</span></p>
+        </div>
+        <button class="btn-primary" type="submit">SEARCH <span class="iloc-s">/ Biroken</span></button>
+      </form>
+
+      <button class="linkish" id="back-commodity" type="button">&larr; Back to commodity <span class="iloc-s">/ Agsubli</span></button>
+    </div>
+  </section>
+
+  <!-- ================= VIEW 3: ADMIN (opens by tapping the logo 5x; password-protected) ================= -->
+  <section id="view-admin" class="view" hidden>
+
+    <div id="admin-gate" class="card admin-card" style="max-width:400px;margin:24px auto 0">
+      <h2 style="text-align:center">Staff Login</h2>
+      <p class="muted" style="text-align:center;margin:6px 0 18px">For MAO / PCIC staff only.</p>
+      <form id="admin-login-form" autocomplete="off">
+        <div class="field">
+          <label for="admin-pass">Password</label>
+          <input type="password" id="admin-pass" autocomplete="off">
+          <p class="err" id="admin-err" hidden>Wrong password. Try again.</p>
+        </div>
+        <button class="btn-primary" type="submit">Log in</button>
+      </form>
+      <button class="linkish" id="admin-back1" type="button">&larr; Back to Farmer Search</button>
+    </div>
+
+    <div id="admin-panel" hidden>
+      <div class="card admin-card">
+        <h2>Database Management</h2>
+        <p class="muted">Upload the rice and corn CSV databases below. The data is saved in this browser and shown to farmers only through their own search results.</p>
+        <p id="storage-note" class="warn-note" hidden>&#9888; Storage is not available in this preview frame &mdash; uploads will be lost when the page reloads. Open the app in a normal browser tab for saving.</p>
+        <div class="status-grid">
+          <div class="status" id="status-rice"></div>
+          <div class="status" id="status-corn"></div>
+        </div>
+      </div>
+
+      <div class="card admin-card">
+        <h3>Upload Rice Database (CSV)</h3>
+        <div class="dz" id="dz-rice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5a6a5f" stroke-width="1.6" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-linejoin="round"/>
+            <path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p>Drag the <b>Rice CSV</b> file here, or</p>
+          <div class="btn-row" style="justify-content:center"><button class="btn-ghost" type="button" data-pick="rice">Choose file</button></div>
+          <input type="file" id="file-rice" accept=".csv,text/csv,text/plain" hidden>
+        </div>
+        <div class="up-preview" id="up-rice" hidden></div>
+      </div>
+
+      <div class="card admin-card">
+        <h3>Upload Corn Database (CSV)</h3>
+        <div class="dz" id="dz-corn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5a6a5f" stroke-width="1.6" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-linejoin="round"/>
+            <path d="M14 2v6h6M9 13h6M9 17h6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p>Drag the <b>Corn CSV</b> file here, or</p>
+          <div class="btn-row" style="justify-content:center"><button class="btn-ghost" type="button" data-pick="corn">Choose file</button></div>
+          <input type="file" id="file-corn" accept=".csv,text/csv,text/plain" hidden>
+        </div>
+        <div class="up-preview" id="up-corn" hidden></div>
+      </div>
+
+      <div class="card admin-card">
+        <h3>CSV Format</h3>
+        <p class="muted">First row must be headers. Required columns: <code>Name</code>, <code>Birthday</code>, <code>Variety</code>, <code>PlantingDate</code>. Recommended full format:</p>
+        <p style="margin-top:8px"><code>Name, Birthday, Commodity, FarmLocation, Area, Variety, PlantingDate</code></p>
+        <div class="btn-row">
+          <button class="btn-ghost" type="button" id="dl-rice-tpl">&#8595; Download Rice template</button>
+          <button class="btn-ghost" type="button" id="dl-corn-tpl">&#8595; Download Corn template</button>
+        </div>
+        <details>
+          <summary>Format rules &amp; tips</summary>
+          <div class="det-body">
+            &bull; Save from Excel as <b>CSV UTF-8</b>.<br>
+            &bull; Dates: use <b>MM/DD/YYYY</b> (other common formats like YYYY-MM-DD or "Jan 5, 2026" are also accepted).<br>
+            &bull; <b>A row must have BOTH a variety and a planting date.</b> Rows missing either are treated as <b>not insured</b> and skipped &mdash; if a farmer has no complete rows, the popup says the database will be updated (not on the list).<br>
+            &bull; <b>Area</b> is optional and shown exactly as typed (e.g., <code>1.5 ha</code> or <code>2,500 sqm</code>). A blank area shows &ldquo;&mdash;&rdquo;.<br>
+            &bull; <b>FarmLocation</b> is optional, shown in the popup table beside Commodity (e.g., <code>Brgy. San Juan</code>). A blank location shows &ldquo;&mdash;&rdquo;.<br>
+            &bull; Birthday confirms identity &mdash; each farmer is matched by <b>first name + last name + exact birthday</b> (middle name optional).<br>
+            &bull; A farmer may appear in multiple rows (e.g., different parcels / planting dates); up to 5 entries are shown per search.<br>
+            &bull; Rows with a missing name or an invalid birthday are skipped.<br>
+            &bull; "Lastname, Firstname" format is handled automatically.
+          </div>
+        </details>
+      </div>
+
+      <div class="card admin-card">
+        <h3>Popup Messages</h3>
+        <p class="muted">Customize the messages farmers see in the popups. Placeholders auto-fill details:
+          <code>{{Name}}</code> farmer name, <code>{{Birthday}}</code> birthday, <code>{{Commodity}}</code> Rice / Corn.</p>
+        <form id="msgs-form" autocomplete="off">
+          <div class="field">
+            <label for="msg-found-title">Found &mdash; main message</label>
+            <input id="msg-found-title" type="text">
+          </div>
+          <div class="field">
+            <label for="msg-found-bday">Found &mdash; birthday line</label>
+            <input id="msg-found-bday" type="text">
+          </div>
+          <div class="field">
+            <label for="msg-found-crops">Found &mdash; table heading</label>
+            <input id="msg-found-crops" type="text">
+          </div>
+          <div class="field">
+            <label for="msg-nf-title">Not on the list &mdash; main message</label>
+            <input id="msg-nf-title" type="text">
+          </div>
+          <div class="field">
+            <label for="msg-nf-sub">Not on the list &mdash; sub message</label>
+            <input id="msg-nf-sub" type="text">
+          </div>
+          <div class="field">
+            <label for="msg-nodb-title">No database yet &mdash; main message</label>
+            <input id="msg-nodb-title" type="text">
+          </div>
+          <div class="field">
+            <label for="msg-nodb-sub">No database yet &mdash; sub message</label>
+            <input id="msg-nodb-sub" type="text">
+          </div>
+          <div class="btn-row">
+            <button class="btn-primary" type="submit" style="width:auto;padding:11px 22px;font-size:16px">Save messages</button>
+            <button class="btn-ghost" type="button" id="msgs-reset">Reset to defaults</button>
+            <button class="btn-ghost" type="button" id="prev-found">Preview found</button>
+            <button class="btn-ghost" type="button" id="prev-nf">Preview not on the list</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card admin-card">
+        <h3>Change Password</h3>
+        <form id="pw-form" autocomplete="off">
+          <div class="field"><label for="pw-cur">Current password</label><input type="password" id="pw-cur" autocomplete="off"></div>
+          <div class="field"><label for="pw-new">New password (min. 6 characters)</label><input type="password" id="pw-new" autocomplete="off"></div>
+          <div class="field"><label for="pw-cf">Repeat new password</label><input type="password" id="pw-cf" autocomplete="off"></div>
+          <p class="err" id="pw-err" hidden></p>
+          <button class="btn-ghost" type="submit">Save new password</button>
+        </form>
+      </div>
+
+      <div class="card admin-card">
+        <h3>Share with Farmers &mdash; Baked-in App</h3>
+        <p class="muted">Download a copy of this app with the currently saved Rice and Corn databases and your popup messages embedded inside the file. Share that one file (free hosting like Netlify / GitHub Pages, Messenger, Bluetooth, USB) and farmers can search on their phones with no upload needed &mdash; it even works offline.</p>
+        <p class="muted" style="margin-top:6px">&#128274; The exported <b>farmer edition</b> has the admin panel disabled and <b>no password included</b> &mdash; there is nothing to find or crack in the shared file. Update the data from your office copy and export again.</p>
+        <p class="muted" style="margin-top:6px">&#9888; The data travels inside the shared file, so a tech-savvy person could extract it. Farmers themselves only ever see their own search results. If downloads are blocked in a preview frame, open the app in a full browser tab first.</p>
+        <div class="btn-row">
+          <button class="btn-primary" type="button" id="bake-btn" style="width:auto;padding:11px 22px;font-size:16px">&#8595; Download farmer app (baked-in index.html)</button>
+        </div>
+      </div>
+
+      <div class="card admin-card">
+        <h3>Danger Zone</h3>
+        <div class="btn-row">
+          <button class="btn-danger" type="button" data-clear="rice">Clear Rice database</button>
+          <button class="btn-danger" type="button" data-clear="corn">Clear Corn database</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" type="button" id="admin-exit" style="max-width:420px">&larr; Back to Farmer Search</button>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>Municipal Agriculture Office - Alcala &bull; PCIC Crop Insurance Search System</footer>
+
+<!-- ================= RESULT MODAL ================= -->
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title-el">
+    <div class="m-icon" id="m-icon"></div>
+    <div id="modal-body" aria-live="polite"></div>
+    <button class="btn-primary" id="modal-close" type="button">Close <span class="iloc-s">/ Isara</span></button>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<script>
+(function(){
+'use strict';
+
+/*__CORE_START__*/
+/* ---------- SHA-256 (compact, pure JS — works offline & without crypto.subtle) ---------- */
+function sha256Ascii(ascii) {
+  function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+  var mathPow = Math.pow, maxWord = mathPow(2, 32), lengthProperty = 'length', i, j, result = '';
+  var words = [], asciiBitLength = ascii[lengthProperty] * 8;
+  var hash = sha256Ascii.h = sha256Ascii.h || [];
+  var k = sha256Ascii.k = sha256Ascii.k || [];
+  var primeCounter = k[lengthProperty];
+  var isComposite = {};
+  if (primeCounter === undefined) primeCounter = 0;
+  for (var candidate = 2; primeCounter < 64; candidate++) {
+    if (!isComposite[candidate]) {
+      for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+      hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+      k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+    }
+  }
+  ascii += '\x80';
+  while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+  for (i = 0; i < ascii[lengthProperty]; i++) {
+    j = ascii.charCodeAt(i);
+    if (j >> 8) return null; // must be a byte-string
+    words[i >> 2] |= j << ((3 - i) % 4) * 8;
+  }
+  words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+  words[words[lengthProperty]] = (asciiBitLength);
+  for (j = 0; j < words[lengthProperty];) {
+    var w = words.slice(j, j += 16);
+    var oldHash = hash;
+    hash = hash.slice(0, 8);
+    for (i = 0; i < 64; i++) {
+      var w15 = w[i - 15], w2 = w[i - 2];
+      var a = hash[0], e = hash[4];
+      var temp1 = hash[7]
+        + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+        + ((e & hash[5]) ^ ((~e) & hash[6]))
+        + k[i]
+        + (w[i] = (i < 16) ? w[i] : (
+            w[i - 16]
+            + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+            + w[i - 7]
+            + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+          ) | 0);
+      var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+        + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+      hash = [(temp1 + temp2) | 0].concat(hash);
+      hash[4] = (hash[4] + temp1) | 0;
+    }
+    for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+  }
+  for (i = 0; i < 8; i++) {
+    for (j = 3; j + 1; j--) {
+      var b = (hash[i] >> (j * 8)) & 255;
+      result += ((b < 16) ? 0 : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+function sha256Hex(str) {
+  var bytes = new TextEncoder().encode(str), bin = '';
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return sha256Ascii(bin);
+}
+
+/* ---------- CSV parser (quotes, commas inside quotes, CRLF, BOM) ---------- */
+function parseCSV(text) {
+  text = String(text == null ? '' : text).replace(/^\uFEFF/, '');
+  var rows = [], row = [], field = '', inQ = false, i, c;
+  for (i = 0; i < text.length; i++) {
+    c = text[i];
+    if (inQ) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQ = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); field = '';
+        if (row.length > 1 || row[0] !== '') rows.push(row);
+        row = [];
+      } else field += c;
+    }
+  }
+  if (field !== '' || row.length) {
+    row.push(field);
+    if (row.length > 1 || row[0] !== '') rows.push(row);
+  }
+  return rows;
+}
+
+/* ---------- dates ---------- */
+var MONTHS = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
+function mkDate(mo, d, y) {
+  if (!(y >= 1900 && y <= 2100)) return null;
+  if (!(mo >= 1 && mo <= 12)) return null;
+  var dim = [31, ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (!(d >= 1 && d <= dim[mo - 1])) return null;
+  return { y: y, m: mo, d: d };
+}
+function parseDateAny(s) {
+  if (s == null) return null;
+  s = String(s).trim().replace(/\uFEFF/g, '');
+  if (!s) return null;
+  var m;
+  if (m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/)) {
+    var y1 = +m[3]; if (y1 < 100) y1 += (y1 <= 29 ? 2000 : 1900);
+    return mkDate(+m[1], +m[2], y1);
+  }
+  if (m = s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/)) return mkDate(+m[2], +m[3], +m[1]);
+  var mn = s.toLowerCase().match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\b/);
+  if (mn) {
+    var mon = MONTHS[mn[1] === 'sept' ? 'sep' : mn[1]];
+    var nums = s.replace(/[^0-9]/g, ' ').trim().split(/\s+/).map(Number).filter(function (n) { return !isNaN(n); });
+    if (nums.length >= 2) {
+      var d2, y2;
+      if (nums[0] > 31) { y2 = nums[0]; d2 = nums[1]; }
+      else { d2 = nums[0]; y2 = nums[1]; }
+      if (y2 < 100) y2 += (y2 <= 29 ? 2000 : 1900);
+      if (d2 >= 1 && d2 <= 31 && y2 >= 1900) { var r = mkDate(mon, d2, y2); if (r) return r; }
+    }
+  }
+  if (/^\d{8}$/.test(s)) {
+    var a = mkDate(+s.slice(0, 2), +s.slice(2, 4), +s.slice(4));
+    if (a) return a;
+    return mkDate(+s.slice(4, 6), +s.slice(6, 8), +s.slice(0, 4));
+  }
+  return null;
+}
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function isoOf(d) { return d.y + '-' + pad2(d.m) + '-' + pad2(d.d); }
+function fmtMDY(iso) {
+  if (!iso) return '\u2014';
+  var p = iso.split('-');
+  return p[1] + '/' + p[2] + '/' + p[0];
+}
+
+/* ---------- name canonicalization (exact match, format-tolerant) ---------- */
+function canonicalName(s) {
+  s = String(s == null ? '' : s).trim();
+  if (s.indexOf(',') >= 0) {
+    var parts = s.split(',');
+    var last = parts.shift().trim();
+    var first = parts.join(' ').trim();
+    if (first && last) s = first + ' ' + last;
+  }
+  s = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  s = s.replace(/['\u2019]/g, '').replace(/[.\-]/g, ' ');
+  return s.replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/* ---------- header mapping ---------- */
+function normHeader(h) {
+  return String(h == null ? '' : h).toLowerCase()
+    .replace(/\(.*?\)/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function mapHeaders(headerRow) {
+  var aliases = {
+    name: ['name', 'farmer name', 'name of farmer', 'full name', 'fullname', 'farmer', 'nagan'],
+    birthday: ['birthday', 'birth date', 'birthdate', 'date of birth', 'bday', 'dob', 'petsa ti pannakaipasngay'],
+    commodity: ['commodity', 'crop'],
+    variety: ['variety', 'seed variety', 'cultivar', 'seed'],
+    planting: ['planting date', 'plantingdate', 'date planted', 'planted date', 'date of planting', 'planting', 'when planted'],
+    area: ['area', 'area planted', 'areaplanted', 'farm area', 'lot area', 'hectares', 'hectare', 'ha', 'size', 'area sqm', 'square meters'],
+    farmloc: ['farm location', 'farmlocation', 'location', 'location of farm', 'farm address', 'address of farm', 'farm site', 'site', 'barangay', 'brgy', 'sitio', 'purok']
+  };
+  var idx = { name: -1, birthday: -1, commodity: -1, variety: -1, planting: -1, area: -1, farmloc: -1 };
+  (headerRow || []).forEach(function (h, i) {
+    var n = normHeader(h);
+    for (var k in aliases) if (aliases.hasOwnProperty(k)) {
+      if (idx[k] < 0 && aliases[k].indexOf(n) >= 0) { idx[k] = i; break; }
+    }
+  });
+  return idx;
+}
+
+/* ---------- rows -> records ----------
+   A row counts as insured ONLY if it has a name, a valid birthday, a variety,
+   AND a valid planting date. Rows missing variety or planting date are skipped
+   ("not on the list"). Area is optional. */
+function buildRecords(rows, defaultCommodity) {
+  var out = { records: [], invalid: 0, skipped: 0, duplicates: 0, total: 0, error: null, warnings: [] };
+  if (!rows || !rows.length) { out.error = 'The CSV file is empty.'; return out; }
+  var idx = mapHeaders(rows[0]);
+  if (idx.name < 0 || idx.birthday < 0 || idx.variety < 0 || idx.planting < 0) {
+    out.error = 'Missing required columns. The first row must include "Name", "Birthday", "Variety" and "PlantingDate" (full format: Name, Birthday, Commodity, Variety, PlantingDate, Area).';
+    return out;
+  }
+  if (idx.commodity < 0) out.warnings.push('No "Commodity" column found \u2014 all rows will be labeled "' + defaultCommodity + '".');
+  if (idx.area < 0) out.warnings.push('No "Area" column found \u2014 the popup will show "Area: \u2014".');
+  if (idx.farmloc < 0) out.warnings.push('No "FarmLocation" column found \u2014 the farm location column will show "\u2014".');
+  var seen = {};
+  for (var i = 1; i < rows.length; i++) {
+    var r = rows[i];
+    out.total++;
+    var get = function (k) { return idx[k] >= 0 ? String(r[idx[k]] == null ? '' : r[idx[k]]).trim() : ''; };
+    var name = get('name');
+    var bd = parseDateAny(get('birthday'));
+    if (!name || !bd) { out.invalid++; continue; }
+    var variety = get('variety');
+    var pl = parseDateAny(get('planting'));
+    if (!variety || !pl) { out.skipped++; continue; }
+    var commodity = get('commodity') || defaultCommodity;
+    var area = get('area');
+    var farmLocation = get('farmloc');
+    var rec = { name: name, birthday: isoOf(bd), commodity: commodity, variety: variety, planting: isoOf(pl), area: area, farmLocation: farmLocation };
+    var dk = [canonicalName(name), rec.birthday, canonicalName(commodity), canonicalName(variety), rec.planting, canonicalName(area), canonicalName(farmLocation)].join('|');
+    if (seen[dk]) { out.duplicates++; continue; }
+    seen[dk] = 1;
+    out.records.push(rec);
+  }
+  if (!out.records.length && !out.error) {
+    out.error = 'No valid records found \u2014 every row is missing a name/birthday, or has no variety or planting date (rows without BOTH are treated as not insured).';
+  }
+  return out;
+}
+
+/* ---------- search index ---------- */
+function buildIndex(records) {
+  var m = {};
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i];
+    var k = canonicalName(r.name) + '|' + r.birthday;
+    if (!m[k]) m[k] = [];
+    m[k].push(r);
+  }
+  return m;
+}
+
+/* ---------- farmer lookup: First + Last required, Middle optional, birthday exact ---------- */
+function findFarmer(db, first, middle, last, birthdayISO) {
+  if (!db || !db.records || !db.records.length) return [];
+  var f = canonicalName(first), m = canonicalName(middle), l = canonicalName(last);
+  if (!f || !l) return [];
+  var withMid = m ? (f + ' ' + m + ' ' + l) : null;
+  var noMid = f + ' ' + l;
+  var k;
+  /* 1) exact full name (with middle) */
+  if (withMid) { k = withMid + '|' + birthdayISO; if (db.index[k] && db.index[k].length) return db.index[k]; }
+  /* 2) exact first + last */
+  k = noMid + '|' + birthdayISO;
+  if (db.index[k] && db.index[k].length) return db.index[k];
+  /* 3+4) token fallback: all typed name parts appear in the record's name (handles middle
+         initials, suffixes like Jr., and DB names with/without middle names) */
+  var tries = [];
+  if (withMid) tries.push(withMid);
+  tries.push(noMid);
+  for (var t = 0; t < tries.length; t++) {
+    var tokens = tries[t].split(' ');
+    var out = [];
+    for (var i = 0; i < db.records.length; i++) {
+      var r = db.records[i];
+      if (r.birthday !== birthdayISO) continue;
+      var dbT = canonicalName(r.name).split(' '), set = {};
+      for (var j = 0; j < dbT.length; j++) if (dbT[j]) set[dbT[j]] = 1;
+      var ok = true;
+      for (var q = 0; q < tokens.length; q++) if (!set[tokens[q]]) { ok = false; break; }
+      if (ok) out.push(r);
+    }
+    if (out.length) return out;
+  }
+  return [];
+}
+
+/* ---------- HTML escaping + message templates (admin-editable popups) ---------- */
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function applyTemplate(tpl, values, boldKeys) {
+  tpl = String(tpl == null ? '' : tpl);
+  values = values || {};
+  boldKeys = boldKeys || {};
+  var out = '', re = /\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g, last = 0, m;
+  while ((m = re.exec(tpl)) !== null) {
+    out += esc(tpl.slice(last, m.index));
+    var key = m[1], v = values[key];
+    var piece = (v == null || v === '') ? m[0] : String(v); /* unknown placeholder stays visible */
+    piece = esc(piece);
+    if (boldKeys[key] && v != null && v !== '') piece = '<strong>' + piece + '</strong>';
+    out += piece;
+    last = m.index + m[0].length;
+  }
+  return out + esc(tpl.slice(last));
+}
+
+/* export for internal tests */
+if (typeof globalThis !== 'undefined') {
+  globalThis.__PCIC_CORE__ = {
+    sha256Hex: sha256Hex, parseCSV: parseCSV, parseDateAny: parseDateAny, isoOf: isoOf,
+    fmtMDY: fmtMDY, canonicalName: canonicalName, mapHeaders: mapHeaders,
+    buildRecords: buildRecords, buildIndex: buildIndex, findFarmer: findFarmer,
+    esc: esc, applyTemplate: applyTemplate
+  };
+}
+/*__CORE_END__*/
+
+/* ==================================================================
+   APP (DOM wiring, storage, admin)
+   ================================================================== */
+
+/* ---------- storage wrapper (falls back to memory if localStorage blocked) ---------- */
+var store = (function () {
+  var mem = {}, ok = true;
+  try { localStorage.setItem('__pcic_t', '1'); localStorage.removeItem('__pcic_t'); }
+  catch (e) { ok = false; }
+  return {
+    persistent: ok,
+    get: function (k) { if (ok) { try { return localStorage.getItem(k); } catch (e) {} } return (k in mem) ? mem[k] : null; },
+    set: function (k, v) { if (ok) { try { localStorage.setItem(k, v); return; } catch (e) {} } mem[k] = v; },
+    remove: function (k) { if (ok) { try { localStorage.removeItem(k); return; } catch (e) {} } delete mem[k]; }
+  };
+})();
+
+/* data baked into a shared copy of this app (see admin: Share with Farmers) */
+function bakedData() { return (typeof window !== 'undefined' && window.__PCIC_BAKED__) ? window.__PCIC_BAKED__ : null; }
+
+var DB_KEY = { rice: 'pcic_rice_db_v2', corn: 'pcic_corn_db_v2' };
+var PASS_KEY = 'pcic_admin_hash_v1';
+var MSG_KEY = 'pcic_msgs_v1';
+var DEFAULT_HASH = 'sha256:2900010e92fdc3cd4b6312fa14b15a1974d264a32186516b442274c6a712186e'; /* "@EdiMAO2024" */
+
+var COMMODITY_LABEL = { rice: 'Rice', corn: 'Corn' };
+var MAX_ENTRIES = 5;
+
+/* ---------- farmer-facing popup messages (editable in admin; blank -> default) ---------- */
+var DEFAULT_MSGS = {
+  foundTitle: '{{Name}} naka insure ka ti mulam.',
+  foundBday: 'Birthday: {{Birthday}}',
+  foundCrops: 'Insured Crops / Naka-insured a mulam',
+  notFoundTitle: 'I-update mi ti database iti sumarsaruno nga al-aldaw.',
+  notFoundSub: '(We will update the database in the next days -- stay tune.)',
+  noDbTitle: 'No {{Commodity}} database yet.',
+  noDbSub: 'Di pay nakarga ti database. Pangasiyon agsubli kayo manen.'
+};
+function getMsgs(overrides) {
+  var stored = null;
+  try { stored = JSON.parse(store.get(MSG_KEY) || 'null'); } catch (e) {}
+  var bk = bakedData();
+  var baked = (bk && bk.msgs) ? bk.msgs : null;
+  var m = {};
+  for (var k in DEFAULT_MSGS) {
+    var ov = (overrides && overrides[k] != null && String(overrides[k]).trim() !== '') ? overrides[k] : null;
+    var st = (stored && stored[k] != null && String(stored[k]).trim() !== '') ? stored[k] : null;
+    var bd = (baked && baked[k] != null && String(baked[k]).trim() !== '') ? baked[k] : null;
+    m[k] = ov != null ? ov : (st != null ? st : (bd != null ? bd : DEFAULT_MSGS[k]));
+  }
+  return m;
+}
+
+var current = 'rice';
+var DBS = {};
+var pending = { rice: null, corn: null };
+var adminAuthed = false;
+
+/* ---------- tiny DOM helpers ---------- */
+function el(id) { return document.getElementById(id); }
+function fmtWhen(ts) {
+  try {
+    return new Date(ts).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  } catch (e) { return new Date(ts).toLocaleString(); }
+}
+
+/* ---------- databases ---------- */
+function loadDB(c) {
+  var raw = store.get(DB_KEY[c]);
+  if (raw) {
+    try {
+      var d = JSON.parse(raw);
+      if (d && Array.isArray(d.records)) return { records: d.records, updatedAt: d.updatedAt, index: buildIndex(d.records), source: 'device' };
+    } catch (e) {}
+  }
+  var b = bakedData();
+  if (b && b[c] && Array.isArray(b[c].records) && b[c].records.length) {
+    return { records: b[c].records, updatedAt: b[c].updatedAt, index: buildIndex(b[c].records), source: 'baked' };
+  }
+  return null;
+}
+function refreshDBs() { DBS = { rice: loadDB('rice'), corn: loadDB('corn') }; }
+
+/* ---------- views ---------- */
+function show(view) {
+  ['commodity', 'search', 'admin'].forEach(function (v) {
+    el('view-' + v).hidden = (v !== view);
+  });
+  window.scrollTo(0, 0);
+}
+function chooseCommodity(c) {
+  current = c;
+  var chip = el('chip');
+  chip.classList.toggle('corn', c === 'corn');
+  el('chip-rice-ic').hidden = (c !== 'rice');
+  el('chip-corn-ic').hidden = (c !== 'corn');
+  el('chip-name').textContent = COMMODITY_LABEL[c];
+  show('search');
+  el('f-first').focus();
+}
+
+/* ---------- modal ---------- */
+var ICONS = {
+  ok: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2e7d32"/><path d="M6.5 12.5l3.5 3.5 7-8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#ef8f00"/><rect x="11" y="10" width="2.4" height="8" rx="1.2" fill="#fff"/><circle cx="12.2" cy="6.9" r="1.5" fill="#fff"/></svg>',
+  warn: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#9aa5a0"/><path d="M12 6.5v7" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="17" r="1.5" fill="#fff"/></svg>'
+};
+function openModal(icon, bodyHTML) {
+  el('m-icon').className = 'm-icon ' + icon;
+  el('m-icon').innerHTML = ICONS[icon];
+  el('modal-body').innerHTML = bodyHTML;
+  el('overlay').hidden = false;
+  el('modal-close').focus();
+}
+function closeModal() { el('overlay').hidden = true; }
+
+/* ---------- popup message builders (admin-editable) ---------- */
+function foundModalHTML(shown, msgs) {
+  var vals = { Name: shown[0].name, Birthday: fmtMDY(shown[0].birthday), Commodity: shown[0].commodity };
+  var rows = shown.map(function (r, i) {
+    return '<tr><td class="m-rownum">' + (i + 1) + '</td>' +
+      '<td>' + esc(r.commodity) + '</td>' +
+      '<td>' + esc(r.farmLocation || '\u2014') + '</td>' +
+      '<td class="m-nowrap">' + esc(r.area || '\u2014') + '</td>' +
+      '<td>' + esc(r.variety) + '</td>' +
+      '<td class="m-nowrap">' + fmtMDY(r.planting) + '</td></tr>';
+  }).join('');
+  var table = '<div class="m-table-wrap"><table class="m-table"><thead><tr>' +
+    '<th>#</th><th>Commodity</th><th>Farm Location</th><th>Area</th><th>Variety</th><th>Planting Date</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  return '<p class="m-title" id="m-title-el">' + applyTemplate(msgs.foundTitle, vals, { Name: true }) + '</p>' +
+    '<p class="m-bday">' + applyTemplate(msgs.foundBday, vals) + '</p>' +
+    '<p class="m-entries-h">' + esc(msgs.foundCrops) + '</p>' + table;
+}
+function notFoundModalHTML(msgs, vals) {
+  vals = vals || {};
+  return '<p class="m-title" id="m-title-el">' + applyTemplate(msgs.notFoundTitle, vals) + '</p>' +
+    '<p class="m-sub">' + applyTemplate(msgs.notFoundSub, vals) + '</p>';
+}
+function noDbModalHTML(commodityLabel, msgs) {
+  var vals = { Commodity: commodityLabel };
+  return '<p class="m-title" id="m-title-el">' + applyTemplate(msgs.noDbTitle, vals) + '</p>' +
+    '<p class="m-sub">' + applyTemplate(msgs.noDbSub, vals) + '</p>';
+}
+
+/* ---------- search ---------- */
+function setBad(input, errEl, bad) {
+  input.classList.toggle('bad', bad);
+  errEl.hidden = !bad;
+}
+function clearForm() {
+  el('f-first').value = '';
+  el('f-middle').value = '';
+  el('f-last').value = '';
+  el('f-bday').value = '';
+  setBad(el('f-first'), el('err-first'), false);
+  setBad(el('f-last'), el('err-last'), false);
+  setBad(el('f-bday'), el('err-bday'), false);
+}
+function doSearch(e) {
+  e.preventDefault();
+  var first = el('f-first').value.trim();
+  var middle = el('f-middle').value.trim();
+  var last = el('f-last').value.trim();
+  var bday = parseDateAny(el('f-bday').value);
+  var firstOk = !!first, lastOk = !!last, bdayOk = !!bday;
+  setBad(el('f-first'), el('err-first'), !firstOk);
+  setBad(el('f-last'), el('err-last'), !lastOk);
+  setBad(el('f-bday'), el('err-bday'), !bdayOk);
+  if (!firstOk) { el('f-first').focus(); return; }
+  if (!lastOk) { el('f-last').focus(); return; }
+  if (!bdayOk) { el('f-bday').focus(); return; }
+
+  var db = DBS[current];
+  if (!db || !db.records.length) {
+    openModal('warn', noDbModalHTML(COMMODITY_LABEL[current], getMsgs()));
+    return;
+  }
+
+  /* strict rule: only rows with variety AND planting date count as insured */
+  var recs = findFarmer(db, first, middle, last, isoOf(bday)).filter(function (r) {
+    return r.variety && r.planting;
+  });
+  if (!recs.length) {
+    openModal('info', notFoundModalHTML(getMsgs(), {
+      Name: [first, middle, last].filter(Boolean).join(' '),
+      Birthday: fmtMDY(isoOf(bday)),
+      Commodity: COMMODITY_LABEL[current]
+    }));
+    clearForm();
+    return;
+  }
+
+  var shown = recs.slice(0, MAX_ENTRIES);
+  openModal('ok', foundModalHTML(shown, getMsgs()));
+  clearForm();
+}
+
+/* ---------- birthday auto-format ---------- */
+function formatBdayInput(v) {
+  var d = v.replace(/\D/g, '').slice(0, 8);
+  if (d.length > 4) return d.slice(0, 2) + '/' + d.slice(2, 4) + '/' + d.slice(4);
+  if (d.length > 2) return d.slice(0, 2) + '/' + d.slice(2);
+  return d;
+}
+
+/* ---------- admin ---------- */
+function storedHash() {
+  var h = store.get(PASS_KEY);
+  if (h) return h;
+  var b = bakedData();
+  if (b && b.passHash) return b.passHash;
+  return DEFAULT_HASH;
+}
+function openAdmin() {
+  var b = bakedData();
+  if (b && b.farmerEdition) { toast('Farmer edition \u2014 admin is disabled. Use the office copy to update the data.'); return; }
+  show('admin');
+  el('admin-gate').hidden = adminAuthed;
+  el('admin-panel').hidden = !adminAuthed;
+  if (adminAuthed) renderAdmin(); else el('admin-pass').focus();
+}
+var failCount = 0, lockUntil = 0;
+function adminLogin(e) {
+  e.preventDefault();
+  var errEl = el('admin-err');
+  var now = Date.now();
+  if (now < lockUntil) {
+    errEl.textContent = 'Too many attempts. Try again in ' + Math.ceil((lockUntil - now) / 1000) + 's.';
+    errEl.hidden = false;
+    return;
+  }
+  if ('sha256:' + sha256Hex(el('admin-pass').value) === storedHash()) {
+    adminAuthed = true;
+    failCount = 0;
+    el('admin-pass').value = '';
+    errEl.hidden = true;
+    el('admin-gate').hidden = true;
+    el('admin-panel').hidden = false;
+    renderAdmin();
+  } else {
+    failCount++;
+    if (failCount >= 5) {
+      lockUntil = now + 30000;
+      failCount = 0;
+      errEl.textContent = 'Too many attempts. Try again in 30s.';
+    } else {
+      errEl.textContent = 'Wrong password. Try again.';
+    }
+    errEl.hidden = false;
+    el('admin-pass').select();
+  }
+}
+function renderAdmin() {
+  el('storage-note').hidden = store.persistent;
+  renderStatus();
+  fillMsgsForm();
+}
+function fillMsgsForm() {
+  var m = getMsgs();
+  el('msg-found-title').value = m.foundTitle;
+  el('msg-found-bday').value = m.foundBday;
+  el('msg-found-crops').value = m.foundCrops;
+  el('msg-nf-title').value = m.notFoundTitle;
+  el('msg-nf-sub').value = m.notFoundSub;
+  el('msg-nodb-title').value = m.noDbTitle;
+  el('msg-nodb-sub').value = m.noDbSub;
+}
+function readMsgsForm() {
+  return {
+    foundTitle: el('msg-found-title').value.trim(),
+    foundBday: el('msg-found-bday').value.trim(),
+    foundCrops: el('msg-found-crops').value.trim(),
+    notFoundTitle: el('msg-nf-title').value.trim(),
+    notFoundSub: el('msg-nf-sub').value.trim(),
+    noDbTitle: el('msg-nodb-title').value.trim(),
+    noDbSub: el('msg-nodb-sub').value.trim()
+  };
+}
+function renderStatus() {
+  ['rice', 'corn'].forEach(function (c) {
+    var db = DBS[c];
+    var n = db ? db.records.length : 0;
+    el('status-' + c).innerHTML =
+      '<h4><span class="dot ' + (n ? 'on' : '') + '"></span>' + COMMODITY_LABEL[c] + ' Database</h4>' +
+      '<p>' + (n ? n + ' record' + (n > 1 ? 's' : '') + '<br>Updated: ' + esc(fmtWhen(db.updatedAt)) +
+        '<br><span style="font-size:12px;color:#8a978d">Source: ' + (db.source === 'baked' ? 'built into this file' : 'uploaded on this device') + '</span>' : 'No database uploaded yet.') + '</p>';
+  });
+}
+function readFile(f) {
+  return new Promise(function (res, rej) {
+    var r = new FileReader();
+    r.onload = function () { res(r.result); };
+    r.onerror = rej;
+    r.readAsText(f, 'UTF-8');
+  });
+}
+function handleFile(c, f) {
+  readFile(f).then(function (text) {
+    var rows = parseCSV(text);
+    var res = buildRecords(rows, COMMODITY_LABEL[c]);
+    var box = el('up-' + c);
+    if (res.error) {
+      pending[c] = null;
+      box.hidden = false;
+      box.innerHTML = '<p class="err" style="font-size:15px">&#10007; ' + esc(res.error) + '</p>';
+      return;
+    }
+    pending[c] = { fileName: f.name, res: res };
+    var stats = '<p class="ok-line">&#10003; <b>' + res.records.length + '</b> valid record' + (res.records.length > 1 ? 's' : '') +
+      ' found in <b>' + esc(f.name) + '</b>' +
+      (res.invalid ? ' &bull; ' + res.invalid + ' row' + (res.invalid > 1 ? 's' : '') + ' skipped (missing name or invalid birthday)' : '') +
+      (res.skipped ? ' &bull; ' + res.skipped + ' row' + (res.skipped > 1 ? 's' : '') + ' skipped (no variety or planting date = not insured)' : '') +
+      (res.duplicates ? ' &bull; ' + res.duplicates + ' duplicate' + (res.duplicates > 1 ? 's' : '') + ' removed' : '') + '</p>';
+    var warns = res.warnings.map(function (w) { return '<p class="warn-line">&#9888; ' + esc(w) + '</p>'; }).join('');
+    var prev = res.records.slice(0, 5).map(function (r) {
+      return '<tr><td>' + esc(r.name) + '</td><td>' + fmtMDY(r.birthday) + '</td><td>' + esc(r.commodity) +
+        '</td><td>' + esc(r.farmLocation || '\u2014') + '</td><td>' + esc(r.area || '\u2014') + '</td><td>' + esc(r.variety) + '</td><td>' + fmtMDY(r.planting) + '</td></tr>';
+    }).join('');
+    box.hidden = false;
+    box.innerHTML = stats + warns +
+      '<table class="up-table"><thead><tr><th>Name</th><th>Birthday</th><th>Commodity</th><th>Farm Location</th><th>Area</th><th>Variety</th><th>PlantingDate</th></tr></thead><tbody>' + prev + '</tbody></table>' +
+      '<div class="btn-row"><button class="btn-primary" type="button" style="width:auto;padding:11px 22px;font-size:16px" data-save="' + c + '">Save ' + COMMODITY_LABEL[c] + ' database</button>' +
+      '<button class="btn-ghost" type="button" data-cancel="' + c + '">Cancel</button></div>';
+  }).catch(function () {
+    toast('Could not read that file.');
+  });
+}
+function commitUpload(c) {
+  var p = pending[c];
+  if (!p) return;
+  store.set(DB_KEY[c], JSON.stringify({ records: p.res.records, updatedAt: Date.now() }));
+  refreshDBs();
+  renderStatus();
+  pending[c] = null;
+  el('up-' + c).hidden = true;
+  toast(COMMODITY_LABEL[c] + ' database saved \u2014 ' + p.res.records.length + ' records.');
+}
+function downloadTemplate(c) {
+  var head = 'Name,Birthday,Commodity,FarmLocation,Area,Variety,PlantingDate';
+  var rows = c === 'rice'
+    ? ['Juan Dela Cruz,03/15/1975,Rice,Brgy. San Juan,1.5 ha,NSIC Rc222,01/12/2026', 'Maria Santiago,07/22/1968,Rice,Brgy. Pasi,0.75 ha,NSIC Rc160,02/03/2026']
+    : ['Danilo Tumbaga,04/04/1978,Corn,Brgy. Galarin,2 ha,IPB Var 4,11/28/2025', 'Erlinda Agtuca,08/19/1970,Corn,Brgy. Chocolyn,1 ha,DK 818,12/15/2025'];
+  var csv = '\uFEFF' + head + '\n' + rows.join('\n') + '\n';
+  try {
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = COMMODITY_LABEL[c] + '-Database-Template.csv';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  } catch (e) { toast('Download not available here.'); }
+}
+
+/* ---------- share with farmers: export a baked-in copy of this app ---------- */
+function resetDOMForExport() {
+  el('view-commodity').hidden = false;
+  el('view-search').hidden = true;
+  el('view-admin').hidden = true;
+  el('admin-gate').hidden = false;
+  el('admin-panel').hidden = true;
+  ['rice', 'corn'].forEach(function (c) {
+    el('status-' + c).innerHTML = '';
+    el('up-' + c).innerHTML = '';
+    el('up-' + c).hidden = true;
+    el('dz-' + c).classList.remove('over');
+  });
+  el('storage-note').hidden = true;
+  el('overlay').hidden = true;
+  el('m-icon').innerHTML = '';
+  el('modal-body').innerHTML = '';
+  el('toast').hidden = true;
+  el('toast').classList.remove('show');
+  ['f-first', 'f-middle', 'f-last', 'f-bday', 'admin-pass', 'pw-cur', 'pw-new', 'pw-cf',
+    'msg-found-title', 'msg-found-bday', 'msg-found-crops', 'msg-nf-title', 'msg-nf-sub', 'msg-nodb-title', 'msg-nodb-sub'
+  ].forEach(function (id) { var x = el(id); if (x) { x.value = ''; x.classList.remove('bad'); } });
+  ['err-first', 'err-last', 'err-bday', 'admin-err', 'pw-err'].forEach(function (id) { var x = el(id); if (x) x.hidden = true; });
+  el('chip').classList.remove('corn');
+  el('chip-rice-ic').hidden = false;
+  el('chip-corn-ic').hidden = true;
+  el('chip-name').textContent = 'Rice';
+  document.querySelectorAll('details').forEach(function (d) { d.removeAttribute('open'); });
+  document.querySelectorAll('script[data-pcic-baked]').forEach(function (s) { s.remove(); });
+}
+function exportBaked() {
+  refreshDBs();
+  if ((!DBS.rice || !DBS.rice.records.length) && (!DBS.corn || !DBS.corn.records.length)) {
+    toast('Upload at least one database first (Rice or Corn).');
+    return;
+  }
+  var missing = [];
+  if (!DBS.rice || !DBS.rice.records.length) missing.push('Rice');
+  if (!DBS.corn || !DBS.corn.records.length) missing.push('Corn');
+  var msgs = null;
+  try { msgs = JSON.parse(store.get(MSG_KEY) || 'null'); } catch (e) {}
+  var payload = {
+    rice: DBS.rice ? { records: DBS.rice.records, updatedAt: DBS.rice.updatedAt } : null,
+    corn: DBS.corn ? { records: DBS.corn.records, updatedAt: DBS.corn.updatedAt } : null,
+    msgs: msgs,
+    farmerEdition: true, /* no password is included; admin is disabled in the shared file */
+    bakedAt: Date.now()
+  };
+  resetDOMForExport();
+  var s = document.createElement('script');
+  s.setAttribute('data-pcic-baked', '1');
+  s.textContent = 'window.__PCIC_BAKED__ = ' + JSON.stringify(payload).replace(/</g, '\\u003c') + ';';
+  document.body.appendChild(s);
+  var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  s.remove();
+  openAdmin();
+  try {
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'PCIC-Crop-Insurance-Search.html';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+    toast('Farmer app downloaded' + (missing.length ? ' (no ' + missing.join(' or ') + ' database included)' : '') + '.');
+  } catch (e) {
+    toast('Download is not available in this frame. Open the app in a normal browser tab and try again.');
+  }
+}
+
+/* ---------- toast ---------- */
+var toastTimer = null;
+function toast(msg) {
+  var t = el('toast');
+  t.textContent = msg;
+  t.hidden = false;
+  requestAnimationFrame(function () { t.classList.add('show'); });
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () {
+    t.classList.remove('show');
+    setTimeout(function () { t.hidden = true; }, 300);
+  }, 2800);
+}
+
+/* ---------- wiring ---------- */
+function init() {
+  refreshDBs();
+
+  /* commodity choice */
+  document.querySelectorAll('.choice').forEach(function (b) {
+    b.addEventListener('click', function () { chooseCommodity(b.getAttribute('data-commodity')); });
+  });
+  el('change-commodity').addEventListener('click', function () { show('commodity'); });
+  el('back-commodity').addEventListener('click', function () { show('commodity'); });
+
+  /* search */
+  el('search-form').addEventListener('submit', doSearch);
+  el('f-bday').addEventListener('input', function (e) {
+    var f = formatBdayInput(e.target.value);
+    if (f !== e.target.value) e.target.value = f;
+  });
+
+  /* modal */
+  el('modal-close').addEventListener('click', function () { closeModal(); el('f-first').focus(); });
+  el('overlay').addEventListener('click', function (e) { if (e.target === el('overlay')) { closeModal(); el('f-first').focus(); } });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !el('overlay').hidden) { closeModal(); el('f-first').focus(); }
+  });
+
+  /* admin access: tap the logo (top-left) 5 times quickly */
+  var taps = [];
+  el('logo').addEventListener('click', function () {
+    var now = Date.now();
+    taps = taps.filter(function (t) { return now - t < 2500; });
+    taps.push(now);
+    if (taps.length >= 5) { taps = []; openAdmin(); }
+  });
+
+  /* admin access: #admin bookmark */
+  function checkHash() { if (location.hash === '#admin') openAdmin(); }
+  window.addEventListener('hashchange', checkHash);
+  checkHash();
+
+  /* admin gate */
+  el('admin-login-form').addEventListener('submit', adminLogin);
+  el('admin-back1').addEventListener('click', function () { show('commodity'); });
+  el('admin-exit').addEventListener('click', function () { show('commodity'); });
+
+  /* uploads */
+  ['rice', 'corn'].forEach(function (c) {
+    var dz = el('dz-' + c), file = el('file-' + c);
+    document.querySelector('[data-pick="' + c + '"]').addEventListener('click', function () { file.click(); });
+    file.addEventListener('change', function () {
+      if (file.files && file.files[0]) handleFile(c, file.files[0]);
+      file.value = '';
+    });
+    dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', function () { dz.classList.remove('over'); });
+    dz.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dz.classList.remove('over');
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) handleFile(c, f);
+    });
+  });
+
+  /* upload preview actions (delegated) */
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('button') : null;
+    if (!t) return;
+    var sv = t.getAttribute('data-save'), cc = t.getAttribute('data-cancel');
+    if (sv) commitUpload(sv);
+    if (cc) { pending[cc] = null; el('up-' + cc).hidden = true; }
+  });
+
+  /* templates */
+  el('dl-rice-tpl').addEventListener('click', function () { downloadTemplate('rice'); });
+  el('dl-corn-tpl').addEventListener('click', function () { downloadTemplate('corn'); });
+
+  /* share with farmers: export baked-in app */
+  el('bake-btn').addEventListener('click', exportBaked);
+
+  /* popup messages editor */
+  el('msgs-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var m = readMsgsForm(), clean = {};
+    for (var k in DEFAULT_MSGS) clean[k] = (m[k] && m[k].trim()) ? m[k].trim() : DEFAULT_MSGS[k];
+    store.set(MSG_KEY, JSON.stringify(clean));
+    fillMsgsForm();
+    toast('Popup messages saved.');
+  });
+  el('msgs-reset').addEventListener('click', function () {
+    store.remove(MSG_KEY);
+    fillMsgsForm();
+    toast('Popup messages reset to defaults.');
+  });
+  el('prev-found').addEventListener('click', function () {
+    var sample = [
+      { name: 'Juan Dela Cruz', birthday: '1975-03-15', commodity: 'Rice', farmLocation: 'Brgy. San Juan', variety: 'NSIC Rc222', planting: '2026-01-12', area: '1.5 ha' },
+      { name: 'Juan Dela Cruz', birthday: '1975-03-15', commodity: 'Rice', farmLocation: 'Brgy. San Juan', variety: 'NSIC Rc160', planting: '2026-02-03', area: '0.75 ha' }
+    ];
+    openModal('ok', foundModalHTML(sample, getMsgs(readMsgsForm())));
+  });
+  el('prev-nf').addEventListener('click', function () {
+    openModal('info', notFoundModalHTML(getMsgs(readMsgsForm()),
+      { Name: 'Juan Dela Cruz', Birthday: '03/15/1975', Commodity: 'Rice' }));
+  });
+
+  /* change password */
+  el('pw-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var errEl = el('pw-err');
+    var cur = el('pw-cur').value, nw = el('pw-new').value, cf = el('pw-cf').value;
+    errEl.hidden = true;
+    if ('sha256:' + sha256Hex(cur) !== storedHash()) { errEl.textContent = 'Current password is wrong.'; errEl.hidden = false; return; }
+    if (nw.length < 6) { errEl.textContent = 'New password must be at least 6 characters.'; errEl.hidden = false; return; }
+    if (nw !== cf) { errEl.textContent = 'New passwords do not match.'; errEl.hidden = false; return; }
+    store.set(PASS_KEY, 'sha256:' + sha256Hex(nw));
+    el('pw-cur').value = el('pw-new').value = el('pw-cf').value = '';
+    toast('Password changed.');
+  });
+
+  /* danger zone (tap twice to confirm) */
+  document.querySelectorAll('[data-clear]').forEach(function (btn) {
+    var armed = false, t = null;
+    btn.addEventListener('click', function () {
+      if (!armed) {
+        armed = true;
+        btn.classList.add('confirm');
+        btn.dataset.oldText = btn.textContent;
+        btn.textContent = 'Tap again to confirm';
+        t = setTimeout(function () { armed = false; btn.classList.remove('confirm'); btn.textContent = btn.dataset.oldText; }, 4000);
+      } else {
+        clearTimeout(t);
+        var c = btn.getAttribute('data-clear');
+        store.remove(DB_KEY[c]);
+        refreshDBs();
+        renderStatus();
+        pending[c] = null;
+        el('up-' + c).hidden = true;
+        armed = false;
+        btn.classList.remove('confirm');
+        btn.textContent = btn.dataset.oldText;
+        toast(COMMODITY_LABEL[c] + ' database cleared.');
+      }
+    });
+  });
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+
+})();
+</script>
+</body>
+</html>
