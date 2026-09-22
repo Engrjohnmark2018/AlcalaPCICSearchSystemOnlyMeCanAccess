@@ -333,8 +333,8 @@
 
       <div class="card admin-card">
         <h3>CSV Format</h3>
-        <p class="muted">First row must be headers. Required columns: <code>Name</code>, <code>Birthday</code>, <code>Variety</code>, <code>PlantingDate</code>. Recommended full format:</p>
-        <p style="margin-top:8px"><code>Name, Birthday, Commodity, FarmLocation, Area, Variety, PlantingDate</code></p>
+        <p class="muted">First row must be headers. Required columns: <code>First Name</code>, <code>Last Name</code>, <code>Birthday</code>, <code>Variety</code>, <code>PlantingDate</code>. Recommended full format:</p>
+        <p style="margin-top:8px"><code>First Name, Middle Name, Last Name, Birthday, Commodity, FarmLocation, Area, Variety, PlantingDate</code></p>
         <div class="btn-row">
           <button class="btn-ghost" type="button" id="dl-rice-tpl">&#8595; Download Rice template</button>
           <button class="btn-ghost" type="button" id="dl-corn-tpl">&#8595; Download Corn template</button>
@@ -349,8 +349,8 @@
             &bull; <b>FarmLocation</b> is optional, shown in the popup table beside Commodity (e.g., <code>Brgy. San Juan</code>). A blank location shows &ldquo;&mdash;&rdquo;.<br>
             &bull; Birthday confirms identity &mdash; each farmer is matched by <b>first name + last name + exact birthday</b> (middle name optional).<br>
             &bull; A farmer may appear in multiple rows (e.g., different parcels / planting dates); up to 5 entries are shown per search.<br>
-            &bull; Rows with a missing name or an invalid birthday are skipped.<br>
-            &bull; "Lastname, Firstname" format is handled automatically.
+            &bull; Rows with a missing first name, last name, or valid birthday are skipped.<br>
+            &bull; The old single "Name" column is not accepted &mdash; split names into <code>First Name</code> / <code>Middle Name</code> (optional) / <code>Last Name</code> columns.
           </div>
         </details>
       </div>
@@ -611,7 +611,9 @@ function normHeader(h) {
 }
 function mapHeaders(headerRow) {
   var aliases = {
-    name: ['name', 'farmer name', 'name of farmer', 'full name', 'fullname', 'farmer', 'nagan'],
+    first: ['first name', 'firstname', 'first', 'given name', 'givenname', 'umuna a nagan'],
+    middle: ['middle name', 'middlename', 'middle', 'middle initial', 'tengngan a nagan'],
+    last: ['last name', 'lastname', 'last', 'surname', 'family name', 'familyname', 'apelyido'],
     birthday: ['birthday', 'birth date', 'birthdate', 'date of birth', 'bday', 'dob', 'petsa ti pannakaipasngay'],
     commodity: ['commodity', 'crop'],
     variety: ['variety', 'seed variety', 'cultivar', 'seed'],
@@ -619,7 +621,7 @@ function mapHeaders(headerRow) {
     area: ['area', 'area planted', 'areaplanted', 'farm area', 'lot area', 'hectares', 'hectare', 'ha', 'size', 'area sqm', 'square meters'],
     farmloc: ['farm location', 'farmlocation', 'location', 'location of farm', 'farm address', 'address of farm', 'farm site', 'site', 'barangay', 'brgy', 'sitio', 'purok']
   };
-  var idx = { name: -1, birthday: -1, commodity: -1, variety: -1, planting: -1, area: -1, farmloc: -1 };
+  var idx = { first: -1, middle: -1, last: -1, birthday: -1, commodity: -1, variety: -1, planting: -1, area: -1, farmloc: -1 };
   (headerRow || []).forEach(function (h, i) {
     var n = normHeader(h);
     for (var k in aliases) if (aliases.hasOwnProperty(k)) {
@@ -630,52 +632,68 @@ function mapHeaders(headerRow) {
 }
 
 /* ---------- rows -> records ----------
-   A row counts as insured ONLY if it has a name, a valid birthday, a variety,
-   AND a valid planting date. Rows missing variety or planting date are skipped
-   ("not on the list"). Area is optional. */
+   The CSV must use separate First Name / Middle Name (optional) / Last Name columns.
+   A row counts as insured ONLY if it has a first & last name, a valid birthday,
+   a variety, AND a valid planting date. Rows missing variety or planting date are
+   skipped ("not on the list"). Area and FarmLocation are optional. */
 function buildRecords(rows, defaultCommodity) {
   var out = { records: [], invalid: 0, skipped: 0, duplicates: 0, total: 0, error: null, warnings: [] };
   if (!rows || !rows.length) { out.error = 'The CSV file is empty.'; return out; }
   var idx = mapHeaders(rows[0]);
-  if (idx.name < 0 || idx.birthday < 0 || idx.variety < 0 || idx.planting < 0) {
-    out.error = 'Missing required columns. The first row must include "Name", "Birthday", "Variety" and "PlantingDate" (full format: Name, Birthday, Commodity, Variety, PlantingDate, Area).';
+  var legacyName = (rows[0] || []).some(function (h) {
+    return ['name', 'farmer name', 'name of farmer', 'full name', 'fullname', 'farmer', 'nagan'].indexOf(normHeader(h)) >= 0;
+  });
+  var requiredMsg = 'Missing required columns. The first row must include "First Name", "Last Name", "Birthday", "Variety" and "PlantingDate" (full format: First Name, Middle Name, Last Name, Birthday, Commodity, FarmLocation, Area, Variety, PlantingDate).';
+  if (idx.first < 0 || idx.last < 0) {
+    out.error = legacyName
+      ? 'The single "Name" column is no longer supported. Split it into three columns: "First Name", "Middle Name" (optional) and "Last Name".'
+      : requiredMsg;
     return out;
   }
+  if (idx.birthday < 0 || idx.variety < 0 || idx.planting < 0) { out.error = requiredMsg; return out; }
+  if (idx.middle < 0) out.warnings.push('No "Middle Name" column found \u2014 middle names are optional; rows will be treated as having no middle name.');
   if (idx.commodity < 0) out.warnings.push('No "Commodity" column found \u2014 all rows will be labeled "' + defaultCommodity + '".');
-  if (idx.area < 0) out.warnings.push('No "Area" column found \u2014 the popup will show "Area: \u2014".');
   if (idx.farmloc < 0) out.warnings.push('No "FarmLocation" column found \u2014 the farm location column will show "\u2014".');
+  if (idx.area < 0) out.warnings.push('No "Area" column found \u2014 the popup will show "Area: \u2014".');
   var seen = {};
   for (var i = 1; i < rows.length; i++) {
     var r = rows[i];
     out.total++;
     var get = function (k) { return idx[k] >= 0 ? String(r[idx[k]] == null ? '' : r[idx[k]]).trim() : ''; };
-    var name = get('name');
+    var first = get('first'), middle = get('middle'), last = get('last');
     var bd = parseDateAny(get('birthday'));
-    if (!name || !bd) { out.invalid++; continue; }
+    if (!first || !last || !bd) { out.invalid++; continue; }
     var variety = get('variety');
     var pl = parseDateAny(get('planting'));
     if (!variety || !pl) { out.skipped++; continue; }
     var commodity = get('commodity') || defaultCommodity;
     var area = get('area');
     var farmLocation = get('farmloc');
-    var rec = { name: name, birthday: isoOf(bd), commodity: commodity, variety: variety, planting: isoOf(pl), area: area, farmLocation: farmLocation };
+    var name = middle ? (first + ' ' + middle + ' ' + last) : (first + ' ' + last);
+    var rec = { firstName: first, middleName: middle, lastName: last, name: name, birthday: isoOf(bd), commodity: commodity, farmLocation: farmLocation, area: area, variety: variety, planting: isoOf(pl) };
     var dk = [canonicalName(name), rec.birthday, canonicalName(commodity), canonicalName(variety), rec.planting, canonicalName(area), canonicalName(farmLocation)].join('|');
     if (seen[dk]) { out.duplicates++; continue; }
     seen[dk] = 1;
     out.records.push(rec);
   }
   if (!out.records.length && !out.error) {
-    out.error = 'No valid records found \u2014 every row is missing a name/birthday, or has no variety or planting date (rows without BOTH are treated as not insured).';
+    out.error = 'No valid records found \u2014 every row is missing a first/last name or birthday, or has no variety or planting date (rows without BOTH are treated as not insured).';
   }
   return out;
 }
 
-/* ---------- search index ---------- */
+/* ---------- search index (identity = First + Last + birthday; middle is extra info) ---------- */
 function buildIndex(records) {
   var m = {};
   for (var i = 0; i < records.length; i++) {
     var r = records[i];
-    var k = canonicalName(r.name) + '|' + r.birthday;
+    var fl;
+    if (r.firstName != null && r.lastName != null && String(r.firstName).trim() && String(r.lastName).trim()) {
+      fl = canonicalName(String(r.firstName) + ' ' + String(r.lastName));
+    } else {
+      fl = canonicalName(r.name); /* legacy records (old baked files): full-name key */
+    }
+    var k = fl + '|' + r.birthday;
     if (!m[k]) m[k] = [];
     m[k].push(r);
   }
@@ -687,19 +705,19 @@ function findFarmer(db, first, middle, last, birthdayISO) {
   if (!db || !db.records || !db.records.length) return [];
   var f = canonicalName(first), m = canonicalName(middle), l = canonicalName(last);
   if (!f || !l) return [];
-  var withMid = m ? (f + ' ' + m + ' ' + l) : null;
-  var noMid = f + ' ' + l;
-  var k;
-  /* 1) exact full name (with middle) */
-  if (withMid) { k = withMid + '|' + birthdayISO; if (db.index[k] && db.index[k].length) return db.index[k]; }
-  /* 2) exact first + last */
-  k = noMid + '|' + birthdayISO;
+  /* 1) identity bucket: first + last + exact birthday (middle never blocks a match) */
+  var k = (f + ' ' + l) + '|' + birthdayISO;
   if (db.index[k] && db.index[k].length) return db.index[k];
-  /* 3+4) token fallback: all typed name parts appear in the record's name (handles middle
-         initials, suffixes like Jr., and DB names with/without middle names) */
+  /* 2) legacy records (name stored as one string incl. middle): exact full-name key */
+  if (m) {
+    var k2 = (f + ' ' + m + ' ' + l) + '|' + birthdayISO;
+    if (db.index[k2] && db.index[k2].length) return db.index[k2];
+  }
+  /* 3) token fallback: all typed name parts appear in the record's name (handles
+         suffixes like Jr. and legacy rows whose middle is part of the name) */
   var tries = [];
-  if (withMid) tries.push(withMid);
-  tries.push(noMid);
+  if (m) tries.push(f + ' ' + m + ' ' + l);
+  tries.push(f + ' ' + l);
   for (var t = 0; t < tries.length; t++) {
     var tokens = tries[t].split(' ');
     var out = [];
@@ -771,7 +789,7 @@ var store = (function () {
 /* data baked into a shared copy of this app (see admin: Share with Farmers) */
 function bakedData() { return (typeof window !== 'undefined' && window.__PCIC_BAKED__) ? window.__PCIC_BAKED__ : null; }
 
-var DB_KEY = { rice: 'pcic_rice_db_v2', corn: 'pcic_corn_db_v2' };
+var DB_KEY = { rice: 'pcic_rice_db_v3', corn: 'pcic_corn_db_v3' };
 var PASS_KEY = 'pcic_admin_hash_v1';
 var MSG_KEY = 'pcic_msgs_v1';
 var DEFAULT_HASH = 'sha256:2900010e92fdc3cd4b6312fa14b15a1974d264a32186516b442274c6a712186e'; /* "@EdiMAO2024" */
@@ -1067,12 +1085,12 @@ function handleFile(c, f) {
       (res.duplicates ? ' &bull; ' + res.duplicates + ' duplicate' + (res.duplicates > 1 ? 's' : '') + ' removed' : '') + '</p>';
     var warns = res.warnings.map(function (w) { return '<p class="warn-line">&#9888; ' + esc(w) + '</p>'; }).join('');
     var prev = res.records.slice(0, 5).map(function (r) {
-      return '<tr><td>' + esc(r.name) + '</td><td>' + fmtMDY(r.birthday) + '</td><td>' + esc(r.commodity) +
+      return '<tr><td>' + esc(r.firstName) + '</td><td>' + esc(r.middleName || '\u2014') + '</td><td>' + esc(r.lastName) + '</td><td>' + fmtMDY(r.birthday) + '</td><td>' + esc(r.commodity) +
         '</td><td>' + esc(r.farmLocation || '\u2014') + '</td><td>' + esc(r.area || '\u2014') + '</td><td>' + esc(r.variety) + '</td><td>' + fmtMDY(r.planting) + '</td></tr>';
     }).join('');
     box.hidden = false;
     box.innerHTML = stats + warns +
-      '<table class="up-table"><thead><tr><th>Name</th><th>Birthday</th><th>Commodity</th><th>Farm Location</th><th>Area</th><th>Variety</th><th>PlantingDate</th></tr></thead><tbody>' + prev + '</tbody></table>' +
+      '<table class="up-table"><thead><tr><th>First Name</th><th>Middle Name</th><th>Last Name</th><th>Birthday</th><th>Commodity</th><th>Farm Location</th><th>Area</th><th>Variety</th><th>PlantingDate</th></tr></thead><tbody>' + prev + '</tbody></table>' +
       '<div class="btn-row"><button class="btn-primary" type="button" style="width:auto;padding:11px 22px;font-size:16px" data-save="' + c + '">Save ' + COMMODITY_LABEL[c] + ' database</button>' +
       '<button class="btn-ghost" type="button" data-cancel="' + c + '">Cancel</button></div>';
   }).catch(function () {
@@ -1090,10 +1108,10 @@ function commitUpload(c) {
   toast(COMMODITY_LABEL[c] + ' database saved \u2014 ' + p.res.records.length + ' records.');
 }
 function downloadTemplate(c) {
-  var head = 'Name,Birthday,Commodity,FarmLocation,Area,Variety,PlantingDate';
+  var head = 'First Name,Middle Name,Last Name,Birthday,Commodity,FarmLocation,Area,Variety,PlantingDate';
   var rows = c === 'rice'
-    ? ['Juan Dela Cruz,03/15/1975,Rice,Brgy. San Juan,1.5 ha,NSIC Rc222,01/12/2026', 'Maria Santiago,07/22/1968,Rice,Brgy. Pasi,0.75 ha,NSIC Rc160,02/03/2026']
-    : ['Danilo Tumbaga,04/04/1978,Corn,Brgy. Galarin,2 ha,IPB Var 4,11/28/2025', 'Erlinda Agtuca,08/19/1970,Corn,Brgy. Chocolyn,1 ha,DK 818,12/15/2025'];
+    ? ['Juan,Dizon,Dela Cruz,03/15/1975,Rice,Brgy. San Juan,1.5 ha,NSIC Rc222,01/12/2026', 'Maria,,Santiago,07/22/1968,Rice,Brgy. Pasi,0.75 ha,NSIC Rc160,02/03/2026']
+    : ['Danilo,,Tumbaga,04/04/1978,Corn,Brgy. Galarin,2 ha,IPB Var 4,11/28/2025', 'Erlinda,,Agtuca,08/19/1970,Corn,Brgy. Chocolyn,1 ha,DK 818,12/15/2025'];
   var csv = '\uFEFF' + head + '\n' + rows.join('\n') + '\n';
   try {
     var blob = new Blob([csv], { type: 'text/csv' });
@@ -1284,8 +1302,8 @@ function init() {
   });
   el('prev-found').addEventListener('click', function () {
     var sample = [
-      { name: 'Juan Dela Cruz', birthday: '1975-03-15', commodity: 'Rice', farmLocation: 'Brgy. San Juan', variety: 'NSIC Rc222', planting: '2026-01-12', area: '1.5 ha' },
-      { name: 'Juan Dela Cruz', birthday: '1975-03-15', commodity: 'Rice', farmLocation: 'Brgy. San Juan', variety: 'NSIC Rc160', planting: '2026-02-03', area: '0.75 ha' }
+      { name: 'Juan Dizon Dela Cruz', birthday: '1975-03-15', commodity: 'Rice', farmLocation: 'Brgy. San Juan', variety: 'NSIC Rc222', planting: '2026-01-12', area: '1.5 ha' },
+      { name: 'Juan Dizon Dela Cruz', birthday: '1975-03-15', commodity: 'Rice', farmLocation: 'Brgy. San Juan', variety: 'NSIC Rc160', planting: '2026-02-03', area: '0.75 ha' }
     ];
     openModal('ok', foundModalHTML(sample, getMsgs(readMsgsForm())));
   });
